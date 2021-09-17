@@ -1,5 +1,7 @@
 /** Functionality related to chatting. */
 
+const axios = require('axios');
+
 // Room is an abstraction of a chat channel
 const Room = require('./Room');
 
@@ -39,12 +41,32 @@ class ChatUser {
 
   /** handle a chat: broadcast to room. */
 
-  handleChat(text) {
-    this.room.broadcast({
-      name: this.name,
-      type: 'chat',
-      text: text
-    });
+  async handleChat(text) {
+    if (text === "/joke") {
+      let joke;
+      try {
+        joke = await axios.get('https://icanhazdadjoke.com/');
+      } catch {
+        joke = "Boo! The API didn't return a joke so I'm scaring you instead."
+      }
+      this.send(JSON.stringify({
+        name: 'computer',
+        type: 'chat',
+        text: joke
+      }));
+    } else if (text === "/members") {
+      this.send(JSON.stringify({
+        name: 'computer',
+        type: 'chat',
+        text: `In room: ${[...this.room.members].map(ele => ele.name)}`
+      }));
+    } else {
+      this.room.broadcast({
+        name: this.name,
+        type: 'chat',
+        text: text
+      });
+    }
   }
 
   /** Handle messages from client:
@@ -58,7 +80,6 @@ class ChatUser {
 
     if (msg.type === 'join') this.handleJoin(msg.name);
     else if (msg.type === 'chat') this.handleChat(msg.text);
-    else if (msg.text === 'joke') this.handleJoke();
     else throw new Error(`bad message: ${msg.type}`);
   }
 
