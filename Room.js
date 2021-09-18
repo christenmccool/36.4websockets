@@ -51,6 +51,17 @@ class Room {
       member.send(JSON.stringify(data));
     }
   }
+
+  /** send message to one member in a room. */
+
+  sendPrivate(toUsername, data) {
+    // this.members.get(member).send(JSON.stringify(data));
+    for (let member of this.members) {
+      if (member.name === toUsername) {
+        member.send(JSON.stringify(data));
+      }
+    }
+  }
 }
 
 module.exports = Room;

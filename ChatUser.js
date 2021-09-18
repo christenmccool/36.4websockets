@@ -2,6 +2,9 @@
 
 const axios = require('axios');
 
+const URL = "https://api.chucknorris.io/jokes/random";
+// const URL = "https://icanhazdadjoke.com/"
+// requires:  {headers : {'Accept': 'application/json'}}
 // Room is an abstraction of a chat channel
 const Room = require('./Room');
 
@@ -40,13 +43,15 @@ class ChatUser {
   }
 
   /** handle a chat: broadcast to room. */
-
+  
   async handleChat(text) {
     if (text === "/joke") {
       let joke;
       try {
-        joke = await axios.get('https://icanhazdadjoke.com/');
-      } catch {
+        const response = await axios.get(URL);
+        joke = response.data.value;
+      } catch(err) {
+        console.log(err)
         joke = "Boo! The API didn't return a joke so I'm scaring you instead."
       }
       this.send(JSON.stringify({
@@ -60,6 +65,13 @@ class ChatUser {
         type: 'chat',
         text: `In room: ${[...this.room.members].map(ele => ele.name)}`
       }));
+    } else if (text.slice(0,5) === "/priv") {
+      const toUsername = text.split(" ")[1];
+      this.room.sendPrivate(toUsername, {
+        name: this.name,
+        type: 'private',
+        text: text.split(" ").slice(2).join(" ")
+      });
     } else {
       this.room.broadcast({
         name: this.name,
